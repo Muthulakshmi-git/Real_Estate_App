@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+  <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent dashboard</title>
+   <!-- Tailwind css -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+<body  class="bg-gradient-to-br from-blue-300 to-white min-h-screen ">
+<h1 class="text-4xl my-10 m-6 font-bold">Agent Dashboard</h1>
+<form onsubmit="addProperty(event)" class=" m-6 p-6 bg-gray-200 rounded shadow space-y-3">
+  <input id="title" placeholder="Title" class="border p-2 w-full outline-none">
+  <input id="address" placeholder="Address" class="border p-2 w-full outline-none">
+  <input id="price" type="number" placeholder="Price" class="border p-2 w-full outline-none">
+  <input id="email" placeholder="Agent Email" class="border p-2 w-full outline-none">
+  <input id="phone" placeholder="Phone" class="border p-2 w-full outline-none">
+  <input id="images" type="file" multiple class="border p-2 w-full outline-none">
+  <button class="bg-blue-600 text-white px-4 py-2 rounded">Add Property</button>
+</form>
+
+<a href="./user-properties.html" class="bg-green-500 text-white font-bold py-2 flex items-center justify-center mx-40 ">View Properties</a>
+
+<h2 class="text-2xl font-bold m-6">My Properties</h2>
+<div id="myProperties" class="grid grid-cols-3 gap-4 m-6"></div>
+
+
+<script>
+async function addProperty(e) {
+  e.preventDefault();
+
+  const fd = new FormData();
+  fd.append("title", title.value);
+  fd.append("address", address.value);
+  fd.append("price", price.value);
+  fd.append("agentEmail", email.value);
+  fd.append("agentPhone", phone.value);
+
+  [...images.files].forEach(img => fd.append("images", img));
+
+  const res = await fetch("http://localhost:5000/api/properties", {
+    method: "POST",
+    body: fd
+  });
+
+  const data = await res.json();
+  alert(data.msg);
+
+  e.target.reset();
+}
+
+async function loadMyProperties() {
+  const res = await fetch("http://localhost:5000/api/properties");
+  const data = await res.json();
+
+  const myEmail = email.value;
+
+  myProperties.innerHTML = data
+    .filter(p => p.agentEmail === myEmail)
+    .map(p => `
+      <div class="border p-2 rounded">
+        <img src="http://localhost:5000/uploads/${p.images[0]}" class="h-32 w-full">
+        <p>${p.title}</p>
+        <button onclick="deleteProperty('${p._id}')"
+          class="bg-red-500 text-white px-3 py-1 mt-2 rounded">
+          Delete
+        </button>
+      </div>
+    `).join("");
+}
+
+async function deleteProperty(id) {
+  await fetch(`http://localhost:5000/api/properties/${id}`, {
+    method: "DELETE"
+  });
+  loadMyProperties();
+}
+
+
+
+</script>
+
+</body>
+</html>

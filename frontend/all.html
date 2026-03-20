@@ -1,0 +1,442 @@
+<!-- agent-dashboard.html -->
+ <!DOCTYPE html>
+
+  <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent dashboard</title>
+   <!-- Tailwind css -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+<body  class="bg-gradient-to-br from-blue-300 to-white min-h-screen ">
+<h1 class="text-4xl my-10 m-6 font-bold">Agent Dashboard</h1>
+<form onsubmit="addProperty(event)" class=" m-6 p-6 bg-gray-200 rounded shadow space-y-3">
+  <input id="title" placeholder="Title" class="border p-2 w-full">
+  <input id="address" placeholder="Address" class="border p-2 w-full">
+  <input id="price" type="number" placeholder="Price" class="border p-2 w-full">
+  <input id="email" placeholder="Agent Email" class="border p-2 w-full">
+  <input id="phone" placeholder="Phone" class="border p-2 w-full">
+  <input id="images" type="file" multiple class="border p-2 w-full">
+  <button class="bg-blue-600 text-white px-4 py-2 rounded">Add Property</button>
+</form>
+
+<a href="./user-properties.html" class="bg-green-500 text-white font-bold py-2 flex items-center justify-center mx-40 ">View Properties</a>
+
+<script>
+async function addProperty(e) {
+  e.preventDefault();
+
+  const fd = new FormData();
+  fd.append("title", title.value);
+  fd.append("address", address.value);
+  fd.append("price", price.value);
+  fd.append("agentEmail", email.value);
+  fd.append("agentPhone", phone.value);
+
+  [...images.files].forEach(img => fd.append("images", img));
+
+  const res = await fetch("http://localhost:5000/api/properties", {
+    method: "POST",
+    body: fd
+  });
+
+  const data = await res.json();
+  alert(data.msg);
+
+  e.target.reset();
+}
+
+
+
+
+</script>
+
+</body>
+</html>
+
+
+<!-- admin-dashboard.html -->
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin dashboard</title>
+     <!-- Tailwind css -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+
+<body class="bg-gradient-to-br from-blue-300 to-white min-h-screen p-6">
+
+  <h2 class="text-4xl font-bold my-10 ">Admin Dashboard</h2>
+  <table cellpadding="10" class="w-full border">
+    <thead class="bg-red-600 text-xl text-white">
+      <tr class="border">
+        <th>Title</th>
+        <th>Price</th>
+        <th>Address</th>
+        <th>Agent Email</th>
+        <th>Agent phone</th>
+        <th>Images</th>
+      </tr>
+    </thead>
+    <tbody id="rows" class="border"></tbody>
+  </table>
+
+  <script>
+    fetch("http://localhost:5000/api/properties")
+      .then(res => res.json())
+      .then(data => {
+        rows.innerHTML = data.map(p => `
+      <tr>
+        <td class="border p-5">${p.title}</td>
+        <td class="border p-5">₹${p.price}</td>
+        <td class="border p-5">${p.address}</td>
+        <td class="border p-5">${p.agentEmail}</td>
+        <td class="border p-5">${p.agentPhone}</td>
+        <td class="border p-5">${p.images}</td>
+        
+      </tr>
+    `).join("");
+      });
+  </script>
+
+</body>
+
+</html>
+
+<!-- user-properties.html -->
+ <!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <!-- Tailwind css -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+
+<body class="bg-gradient-to-br from-blue-300 to-white min-h-screen p-6 flex flex-col items-center">
+  <h1 onclick="logout()" class="text-white bg-red-500 py-2 px-5 absolute right-4 font-bold">Logout</h1>
+  <h2 class="text-4xl font-bold my-10 ">Available Properties</h2>
+  <!-- Properties -->
+  <div id="list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+  <!-- Booking page -->
+  <div class=" flex justify-center items-center"  >
+    <form action="" id="openBookPage"  class="hidden bg-white  w-96 h-96 shadow-2xl my-10 px-10 absolute top-5   ">
+      <h1 id="closeBookPage" class="text-right cursor-pointer pt-3 text-2xl font-bold">X</h1>
+      <input type="text" id="name" placeholder="Enter your Name" class=" my-10 border border-black w-full px-3 py-2 mb-3 outline-none">
+      <input type="email" id="email" placeholder="Enter your Email" class="border border-black w-full px-3 py-2 mb-3 outline-none">
+      <input type="text" id="phone" placeholder="Enter your Mobile no" class="border border-black w-full px-3 py-2 mb-3 outline-none">
+      <select name="" id="reason" class="border border-black w-full px-3 mb-3 outline-none py-2">
+        <option value="I want to buy">I want to Buy</option>
+        <option value="Interested">Interested</option>
+        <option value="I want the details">I want the property details</option>
+        <option value="Search property in this surrounding area">Search property in this surrounding area</option>
+        <option value="Want to buy in future">Want to buy in future</option>
+      </select>
+      <button onsubmit="book" class="bg-green-500 text-white font-bold px-32 py-2 rounded-lg mt-5 ">Submit</button>
+    </form>
+  </div>
+
+  <script>
+
+    // Logout
+    function logout()
+    {
+      localStorage.removeItem("user");
+      location.href = "login.html"
+
+    }
+
+
+    // Properties load
+    async function loadProperties() {
+      const res = await fetch("http://localhost:5000/api/properties");
+      const properties = await res.json();
+
+      list.innerHTML = properties.map(p => `
+    <div class=" p-2 rounded shadow transform hover:-translate-y-2 duration-700">
+      <img onclick="fullImg()" src="http://localhost:5000/uploads/${p.images[0]}" class="h-40 w-full object-cover">
+      <h3 class="p-2 font-bold ">${p.title}</h3>
+      <p class="px-2 pb-2">${p.address}</p>
+      <p class="px-2 pb-2" >₹${p.price}</p>
+      <button onclick="booking()" 
+        class="  mx-2 mb-2 bg-green-600 text-white px-32 py-1 mt-2 rounded">
+        Book
+      </button>
+    </div>
+  `).join("");
+    }
+
+
+    // Open Booking page
+    var openBookPage = document.getElementById("openBookPage");
+    var closeBookPage = document.getElementById("closeBookPage");
+    function booking()
+    {
+      openBookPage.style.display = "block";
+    }
+    closeBookPage.addEventListener("click",()=>
+  {
+    openBookPage.style.display = "none";
+  })
+
+// Full image
+function fullImg()
+{
+  img.style.width = "50%";
+}
+
+
+// Book page 
+
+    async function book(agentEmail,e) {
+      e.preventDefault();
+      
+        await fetch("http://localhost:5000/api/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          // propertyId: id,
+          // userEmail: "user@email.com",
+          // agentEmail
+          name:name.value,
+          email:email.value,
+          phone:phone.value,
+          reason:reason.value,
+          agentEmail
+
+        })
+      });
+
+      alert("Booking request sent");
+     
+
+    }
+
+    loadProperties();
+  </script>
+
+</body>
+
+</html>
+
+<!-- server.js -->
+ require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+
+const authRoutes = require("./routes/authRoutes");
+const propertyRoutes = require("./routes/propertyRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use("/uploads", express.static("uploads"));
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
+
+app.use("/api/auth", authRoutes);
+app.use("/api/properties", propertyRoutes);
+app.use("/api/book", bookingRoutes);
+
+app.listen(5000, () => console.log("Server running on 5000"));
+
+
+<!-- models/Booking.js -->
+ const mongoose = require("mongoose");
+
+const bookingSchema = new mongoose.Schema({
+  // propertyId: String,
+  // userEmail: String,
+  // agentEmail: String
+  name:String,
+  email: String,
+  phone: Number,
+  reason: String,
+  agentEmail: String
+});
+
+module.exports = mongoose.model("Booking", bookingSchema);
+
+
+<!-- models/Property.js -->
+ const mongoose = require("mongoose");
+
+const propertySchema = new mongoose.Schema({
+  title: String,
+  address: String,
+  price: Number,
+  images: [String],
+  agentEmail: String,
+  agentPhone: String
+}, { timestamps: true });
+
+module.exports = mongoose.model("Property", propertySchema);
+
+
+<!-- models/User.js -->
+ const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
+  role: { type: String, enum: ["user", "agent", "admin"] }
+});
+
+module.exports = mongoose.model("User", userSchema);
+
+
+<!-- routes/authRoutes.js -->
+ const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+
+const router = express.Router();
+
+// router.post("/register", async (req, res) => {
+//   const { name, email, password, role } = req.body;
+//   const hashed = await bcrypt.hash(password, 10);
+//   await User.create({ name, email, password: hashed, role });
+//   res.json({ msg: "Registered" });
+// });
+
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ msg: "All fields required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ msg: "Email already registered" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role
+    });
+
+    res.status(201).json({ msg: "Registration successful" });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+
+router.post("/login", async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) return res.status(401).json({ msg: "Invalid" });
+
+  const match = await bcrypt.compare(req.body.password, user.password);
+  if (!match) return res.status(401).json({ msg: "Invalid" });
+
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET
+  );
+
+  res.json({ token, role: user.role });
+});
+
+module.exports = router;
+
+
+<!-- routes/bookingRoutes.js -->
+ const express = require("express");
+const Booking = require("../models/Booking");
+const nodemailer = require("nodemailer");
+
+const router = express.Router();
+
+router.post("/", async (req, res) => {
+  const { name,email,phone,reason } = req.body;
+
+  await Booking.create({ name,email,phone,reason });
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: process.env.EMAIL, pass: process.env.EMAIL_PASS }
+  });
+
+  await transporter.sendMail({
+    to: agentEmail,
+    subject: "Property Booking",
+    text: `Booked by name: ${name} E-mail: ${email} Phone Number: ${phone} for ${reason} `
+  });
+
+  res.json({ msg: "Booked & Email Sent" });
+});
+
+module.exports = router;
+
+
+<!-- routes/propertyRoutes.js -->
+ const express = require("express");
+const multer = require("multer");
+const Property = require("../models/Property");
+
+const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: "uploads/",
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
+
+router.post("/", upload.array("images"), async (req, res) => {
+  try {
+    const images = req.files.map(file => file.filename);
+
+    const property = await Property.create({
+      title: req.body.title,
+      address: req.body.address,
+      price: Number(req.body.price),
+      agentEmail: req.body.agentEmail,
+      agentPhone: req.body.agentPhone,
+      images
+    });
+
+    res.status(201).json({
+      msg: "Property added successfully",
+      property
+    });
+
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to add property" });
+  }
+});
+
+router.get("/", async (req, res) => {
+  const properties = await Property.find().sort({ createdAt: -1 });
+  res.json(properties);
+});
+
+module.exports = router;
+
+
+<!-- .env file -->
+ MONGO_URI=mongodb://127.0.0.1:27017/supportDB
+JWT_SECRET=SUPPORT_SECRET_KEY
+MAIL_USER=muthulakshmi030507@gmail.com
+MAIL_PASS=vhcvdhcszyyunoct

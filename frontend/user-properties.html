@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <!-- Tailwind css -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+
+<body class="bg-gradient-to-br from-blue-300 to-white min-h-screen p-6 flex flex-col items-center">
+  <h1 onclick="logout()" class="text-white bg-red-500 py-2 px-5 absolute right-4 font-bold">Logout</h1>
+  <h2 class="text-4xl font-bold my-10 ">Available Properties</h2>
+  <!-- Properties -->
+  <div id="list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+  <!-- Booking page -->
+  <!-- <div class=" flex justify-center items-center">
+    <form action="" id="openBookPage" class="hidden bg-white  w-96 h-96 shadow-2xl my-10 px-10 absolute top-5   ">
+      <h1 id="closeBookPage" class="text-right cursor-pointer pt-3 text-2xl font-bold">X</h1>
+      <input type="text" id="name" placeholder="Enter your Name"
+        class=" my-10 border border-black w-full px-3 py-2 mb-3 outline-none">
+      <input type="email" id="email" placeholder="Enter your Email"
+        class="border border-black w-full px-3 py-2 mb-3 outline-none">
+      <input type="text" id="phone" placeholder="Enter your Mobile no"
+        class="border border-black w-full px-3 py-2 mb-3 outline-none">
+      <select name="" id="reason" class="border border-black w-full px-3 mb-3 outline-none py-2">
+        <option value="I want to buy">I want to Buy</option>
+        <option value="Interested">Interested</option>
+        <option value="I want the details">I want the property details</option>
+        <option value="Search property in this surrounding area">Search property in this surrounding area</option>
+        <option value="Want to buy in future">Want to buy in future</option>
+      </select>
+      <button onsubmit="book" class="bg-green-500 text-white font-bold px-32 py-2 rounded-lg mt-5 ">Submit</button>
+    </form>
+  </div> -->
+  <div id="propertyModal"
+ class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+
+ <div class="bg-white w-4/5 h-4/5 p-6 overflow-y-auto rounded relative">
+
+  <span onclick="closeModal()" 
+   class="absolute right-5 top-3 text-2xl cursor-pointer font-bold">✕</span>
+
+  <div id="modalContent"></div>
+
+ </div>
+</div>
+
+
+  <script>
+
+    // Logout
+    function logout() {
+      localStorage.removeItem("user");
+      location.href = "login.html"
+
+    }
+
+
+    // Properties load
+    async function loadProperties() {
+      const res = await fetch("http://localhost:5000/api/properties");
+      const properties = await res.json();
+
+      list.innerHTML = properties.map(p => `
+    <div class=" p-2 rounded shadow transform hover:-translate-y-2 duration-700">
+      
+      <img onclick="fullImg()" src="${p.images.length
+          ? `http://localhost:5000/uploads/${p.images[0]}`
+          : 'https://via.placeholder.com/400x200'}"
+  class="h-40 w-full object-cover">
+
+      <h3 class="p-2 font-bold ">${p.title}</h3>
+      <p class="px-2 pb-2">${p.address}</p>
+      <p class="px-2 pb-2" >₹${p.price}</p>
+      <button onclick='openModal(${JSON.stringify(p)})'
+ class="bg-green-600 text-white w-full py-2 rounded">
+ Book
+</button>
+
+    </div>
+  `).join("");
+    }
+
+
+    // Open Booking page
+    // var openBookPage = document.getElementById("openBookPage");
+    // var closeBookPage = document.getElementById("closeBookPage");
+    // function booking() {
+    //   openBookPage.style.display = "block";
+    // }
+    // closeBookPage.addEventListener("click", () => {
+    //   openBookPage.style.display = "none";
+    // })
+
+    // Full image
+    function fullImg() {
+      img.style.width = "50%";
+    }
+
+
+    // Book page 
+
+    async function book(agentEmail, e) {
+      e.preventDefault();
+
+      await fetch("http://localhost:5000/api/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          // propertyId: id,
+          // userEmail: "user@email.com",
+          // agentEmail
+          name: name.value,
+          email: email.value,
+          phone: phone.value,
+          reason: reason.value,
+          agentEmail
+
+        })
+      });
+
+      alert("Booking request sent");
+
+
+    }
+
+    // Open model
+    function openModal(p) {
+  propertyModal.classList.remove("hidden");
+
+  modalContent.innerHTML = `
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        ${p.images.map(img =>
+          `<img src="http://localhost:5000/uploads/${img}" class="mb-2 rounded">`
+        ).join("")}
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-bold">${p.title}</h2>
+        <p>${p.address}</p>
+        <p class="font-bold my-2">₹${p.price}</p>
+
+        <form onsubmit="book('${p.agentEmail}', event)">
+          <input required placeholder="Name" id="names" class="border w-full mb-2 p-2 outline-none">
+          <input required placeholder="Email" id="email" class="border w-full mb-2 p-2 outline-none">
+          <input required placeholder="Phone" id="phone" class="border w-full mb-2 p-2 outline-none">
+          <select id="reason" class="border w-full mb-2 p-2 outline-none">
+            
+            
+            <option value="I want to buy">I want to Buy</option>
+        <option value="Interested">Interested</option>
+        <option value="I want the details">I want the property details</option>
+        <option value="Search property in this surrounding area">Search property in this surrounding area</option>
+        <option value="Want to buy in future">Want to buy in future</option>
+          </select>
+          <button class="bg-green-600 text-white px-4 py-2 rounded">Submit</button>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function closeModal() {
+  propertyModal.classList.add("hidden");
+}
+
+
+    loadProperties();
+  </script>
+
+</body>
+
+</html>
